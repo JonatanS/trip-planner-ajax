@@ -31,8 +31,11 @@ router.post('/add', function (req, res, next){
 
 //READ: /api/days/:id
 router.get('/:dayNum', function (req, res, next){
-	console.log("reading day" + req.params.dayNum);
+	// console.log("reading day" + req.params.dayNum);
 	return Day.findOne({number: req.params.dayNum})
+	.populate('hotel')
+	.populate('restaurants')
+	.populate('activities')
 	.then(function(day){
 		res.send(day);
 	}).then(null, next);
@@ -41,8 +44,8 @@ router.get('/:dayNum', function (req, res, next){
 //UPDATE
 
 //DELETE
-router.get('/:id/delete', function (req, res, next){
-	return Day.findById(req.params.id)
+router.get('/delete/:dayNum', function (req, res, next){
+	return Day.findOne({number: req.params.dayNum})
 	.then(function(day){
 		day.remove();
 	}).then(res.send("deleted"));
@@ -50,16 +53,15 @@ router.get('/:id/delete', function (req, res, next){
 
 router.post('/:dayNumber/addActivity', function (req, res, next){
 	//find day by number
-	console.log("HELLO" + JSON.stringify(req.body));
+	// console.log("HELLO" + JSON.stringify(req.body));
 
 	if(req.body.type === "activities") {
-		var activity =  Activity.findOne({name: req.body.placeName});
+		var activity = Activity.findOne({name: req.body.placeName});
 		var day = Day.findOne({number: req.params.dayNumber});
 		Promise.all([activity, day])
 		.then(function(info){
 			var day = info[1];
 			var activity = info[0];
-			console.log(JSON.stringify(day));
 			day.activities.push(activity);
 			day.save().then(null, next);
 
@@ -73,10 +75,8 @@ router.post('/:dayNumber/addActivity', function (req, res, next){
 		.then(function(info){
 			var day = info[1];
 			var restaurant = info[0];
-			console.log(JSON.stringify(day));
 			day.restaurants.push(restaurant);
 			day.save().then(null, next);
-
 		})
 	}
 
@@ -87,10 +87,8 @@ router.post('/:dayNumber/addActivity', function (req, res, next){
 		.then(function(info){
 			var day = info[1];
 			var hotel = info[0];
-			console.log(JSON.stringify(day));
 			day.hotel = hotel;
 			day.save().then(null, next);
-
 		})
 	}
 });
