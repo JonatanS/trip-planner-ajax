@@ -8,6 +8,10 @@ $(function () {
 
     var currentDay = 1;
 
+    //add 1 day to mongo if it doesnt exist:
+    createDayInDb(1);
+
+
     var placeMapIcons = {
         activities: '/images/star-3.png',
         restaurants: '/images/restaurant.png',
@@ -30,7 +34,6 @@ $(function () {
         $div.append('<button class="btn btn-xs btn-danger remove btn-circle">x</button>');
 
         return $item;
-
     };
 
     var setDayButtons = function () {
@@ -132,6 +135,7 @@ $(function () {
 
     $addPlaceButton.on('click', function () {
 
+        console.log("About to add activity");
         var $this = $(this);
         var sectionName = $this.parent().attr('id').split('-')[0];
         var $listToAppendTo = $('#' + sectionName + '-list').find('ul');
@@ -141,11 +145,24 @@ $(function () {
         var createdMapMarker = drawLocation(map, placeObj.place[0].location, {
             icon: placeMapIcons[sectionName]
         });
-
         days[currentDay - 1].push({place: placeObj, marker: createdMapMarker, section: sectionName});
         $listToAppendTo.append(createItineraryItem(placeName));
 
-        mapFit();
+        console.log("here");
+        //mapFit();
+        //ajax post to Day mongoDB
+        //find Day ID
+        $.ajax({
+            method: "POST",
+            url: '/api/days/' + currentDay + '/addActivity',
+            data: {type: sectionName, placeName: placeName},
+            success: function(){
+                console.log("added activities?!");
+            },
+            error: function (err) {
+                console.log("could not add activities" + err);
+            }
+        }); 
 
     });
 
@@ -168,7 +185,7 @@ $(function () {
     });
 
     $addDayButton.on('click', function () {
-
+        console.log("Adding Day");
         var currentNumOfDays = days.length;
         var $newDayButton = createDayButton(currentNumOfDays + 1);
 
@@ -176,6 +193,7 @@ $(function () {
         days.push([]);
         setDayButtons();
         setDay(currentNumOfDays + 1);
+        createDayInDb(currentNumOfDays + 1);
 
     });
 
@@ -185,5 +203,20 @@ $(function () {
 
     });
 
+    function createDayInDb(dayNum) {
+               //add new day to mongo:
+               
+        $.ajax({
+            method: "POST",
+            url: '/api/days/add',
+            data: {number: dayNum},
+            success: function(){
+                console.log("added a day?!");
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        }); 
+    }
 });
 
