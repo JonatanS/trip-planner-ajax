@@ -138,7 +138,8 @@ $(function () {
         //     url: '/api/days/' + dayNum,
 
         // })
-
+console.log(dayNum);
+        placesForThisDay = [];
         $.get('/api/days/' + dayNum, function (data) {
             var $dayButtons = $('.day-btn').not('.add-day');
             reset();
@@ -240,27 +241,33 @@ $(function () {
     });
 
     $dayButtons.on('click', '.day-btn', function () {
-        setDay($(this).index() + 1);
+        console.dir($(this));
+        console.log($(this).index() +1);
+        if(!$(this).hasClass('add-day')){
+            setDay($(this).index() + 1);
+        }
     });
 
     $addDayButton.on('click', function () {
         console.log("Adding Day");
 
-        $.get('/api/days', function (data) {
-            var currentNumOfDays = data.length;
-            numDays = currentNumOfDays;
-            console.log("nudays", numDays);
-            var $newDayButton = createDayButton(currentNumOfDays + 1);
+        $.ajax({
+            method: "POST",
+            url: '/api/days/add',
+            data: {number: numDays + 1},
+            success: function(data){
+                numDays++;
+                console.log("new numDays", numDays);
+                var $newDayButton = createDayButton(numDays);
 
-            $addDayButton.before($newDayButton);
-            setDayButtons();
-            setDay(currentNumOfDays + 1);
-            createDayInDb(currentNumOfDays + 1);
-        })
-        .fail( function (err) {
-            console.error('err', err)
-        });
-
+                $addDayButton.before($newDayButton);
+                setDayButtons();
+                setDay(numDays);
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        }); 
     });
 
     $dayTitle.children('button').on('click', function () {
@@ -269,16 +276,14 @@ $(function () {
 
     });
 
-    function createDayInDb(dayNum) {
+    function createDayInDb(dayNum, cb) {
                //add new day to mongo:
                
         $.ajax({
             method: "POST",
             url: '/api/days/add',
             data: {number: dayNum},
-            success: function(){
-                console.log("added a day?!");
-            },
+            success: cb,
             error: function (err) {
                 console.log(err);
             }
