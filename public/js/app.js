@@ -9,20 +9,17 @@ $(function () {
     var numDays = 1;
     var currentDay = 1;
 
-    //add 1 day to mongo if it doesnt exist:
-    createDayInDb(1);
-
-    $.get('/api/days', function (data) {
-        var currentNumOfDays = data.length;
-        numDays = currentNumOfDays;
-        // console.log("numdays", numDays);
-        setDayButtons();
-        setDay(1);
-        // createDayInDb(currentNumOfDays + 1);
-    })
-    .fail( function (err) {
-        console.error('err', err)
-    });
+    // $.get('/api/days', function (data) {
+    //     var currentNumOfDays = data.length;
+    //     numDays = currentNumOfDays;
+    //     // console.log("numdays", numDays);
+    //     setDayButtons();
+    //     setDay(1);
+    //     // createDayInDb(currentNumOfDays + 1);
+    // })
+    // .fail( function (err) {
+    //     console.error('err', err)
+    // });
 
     var placeMapIcons = {
         activities: '/images/star-3.png',
@@ -36,6 +33,10 @@ $(function () {
     var $dayTitle = $('#day-title');
     var $addPlaceButton = $('.add-place-button');
 
+    //add 1 day to mongo if it doesnt exist:
+    createFirstDayInDb(1);
+
+    //functions
     var createItineraryItem = function (placeName) {
 
         var $item = $('<li></li>');
@@ -126,7 +127,7 @@ $(function () {
 
     };
 
-    var setDay = function (dayNum) {
+    function setDay(dayNum) {
 
         // if (dayNum > days.length || dayNum < 0) {
         //     return;
@@ -136,6 +137,7 @@ $(function () {
 
         placesForThisDay = [];
         $.get('/api/days/' + dayNum, function (data) {
+            debugger;
             var $dayButtons = $('.day-btn').not('.add-day');
             reset();
             
@@ -147,18 +149,15 @@ $(function () {
                 var myMarker = drawLocation(map, data.hotel.place[0].location, {
                     icon: placeMapIcons['hotels']
                 });
-                // console.log('this is the marker', myMarker);
                 placesForThisDay[placesForThisDay.length-1].marker = myMarker;
-                // console.log(placesForThisDay);
             }
-            // debugger;
             data.restaurants.forEach(function (restaurant) {
                 placesForThisDay.push(restaurant);
                 placesForThisDay[placesForThisDay.length-1].section = 'restaurants';
                 var myMarker = drawLocation(map, restaurant.place[0].location, {
                     icon: placeMapIcons['restaurants']
                 });
-                // console.log('this is the marker', myMarker);
+
                 placesForThisDay[placesForThisDay.length-1].marker = myMarker;
             });
             
@@ -168,12 +167,10 @@ $(function () {
                 var myMarker = drawLocation(map, activity.place[0].location, {
                     icon: placeMapIcons['activities']
                 });
-                // console.log('this is the marker', myMarker);
                 placesForThisDay[placesForThisDay.length-1].marker = myMarker;
             })
 
             placesForThisDay.forEach(function (place) {
-                // console.log(place);
                 $('#' + place.section + '-list').find('ul').append(createItineraryItem(place.name));
                 place.marker.setMap(map);
             });
@@ -285,16 +282,19 @@ $(function () {
 
     });
 
-    function createDayInDb(dayNum, cb) {
-               //add new day to mongo:
-               
+    function createFirstDayInDb(dayNum) {
+       //add new day to mongo:
+       console.log('creating new day');
         $.ajax({
             method: "POST",
             url: '/api/days/add',
             data: {number: dayNum},
-            success: cb,
+            success: function(data) {
+                console.log('new day:' + JSON.stringify(data));
+                setDay(1);
+            },
             error: function (err) {
-                console.log(err);
+                console.log("err");
             }
         }); 
     }

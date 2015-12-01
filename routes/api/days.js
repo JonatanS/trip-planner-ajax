@@ -9,9 +9,6 @@ var Promise = require('bluebird');
 
 //GET ALL: /api/days
 router.get('/', function (req, res, next){
-	console.log("HERE");
-	console.log(models);
-
 	Day.find({}).exec().then(function( days ){
 		console.log("Days: " , JSON.stringify(days));
 	res.send(days);
@@ -37,6 +34,7 @@ router.get('/:dayNum', function (req, res, next){
 	.populate('restaurants')
 	.populate('activities')
 	.then(function(day){
+		console.log("returning day: " + JSON.stringify(day));
 		res.send(day);
 	}).then(null, next);
 });
