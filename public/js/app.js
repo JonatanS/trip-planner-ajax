@@ -173,7 +173,7 @@ $(function () {
             })
 
             placesForThisDay.forEach(function (place) {
-                console.log(place);
+                // console.log(place);
                 $('#' + place.section + '-list').find('ul').append(createItineraryItem(place.name));
                 place.marker.setMap(map);
             });
