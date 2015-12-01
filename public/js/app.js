@@ -15,7 +15,7 @@ $(function () {
     $.get('/api/days', function (data) {
         var currentNumOfDays = data.length;
         numDays = currentNumOfDays;
-        console.log("numdays", numDays);
+        // console.log("numdays", numDays);
         setDayButtons();
         setDay(1);
         // createDayInDb(currentNumOfDays + 1);
@@ -133,12 +133,7 @@ $(function () {
         // }
 
         // var placesForThisDay = days[dayNum - 1];
-        // $.ajax({
-        //     method: 'GET',
-        //     url: '/api/days/' + dayNum,
 
-        // })
-console.log(dayNum);
         placesForThisDay = [];
         $.get('/api/days/' + dayNum, function (data) {
             var $dayButtons = $('.day-btn').not('.add-day');
@@ -230,13 +225,27 @@ console.log(dayNum);
         var $this = $(this);
         var $listItem = $this.parent().parent();
         var nameOfPlace = $this.siblings('span').text();
+        
         // days in undefined
-        var indexOfThisPlaceInDay = getIndexOfPlace(nameOfPlace, days[currentDay - 1]);
-        var placeInDay = days[currentDay - 1][indexOfThisPlaceInDay];
-
-        placeInDay.marker.setMap(null);
-        days[currentDay - 1].splice(indexOfThisPlaceInDay, 1);
+        // var indexOfThisPlaceInDay = getIndexOfPlace(nameOfPlace, days[currentDay - 1]);
+        // var placeInDay = days[currentDay - 1][indexOfThisPlaceInDay];
+        var placeType = $this.parent().parent().parent().parent().attr('id').split('-')[0];
+        console.dir(placeType)
+        // placeInDay.marker.setMap(null);
+        // days[currentDay - 1].splice(indexOfThisPlaceInDay, 1);
         $listItem.remove();
+
+        $.ajax({
+            method: "POST",
+            url: '/api/days/' + currentDay + '/removeActivity',
+            data: {type: placeType, placeName: nameOfPlace},
+            success: function(){
+                console.log("deleted activities?!");
+            },
+            error: function (err) {
+                console.log("could not delete activities" + err);
+            }
+        }); 
 
     });
 

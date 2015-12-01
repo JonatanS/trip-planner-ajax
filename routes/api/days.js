@@ -51,10 +51,55 @@ router.get('/delete/:dayNum', function (req, res, next){
 	}).then(res.send("deleted"));
 });
 
+router.post('/:dayNumber/removeActivity', function (req, res, next){
+	if(req.body.type === "activities") {
+		var activity = Activity.findOne({name: req.body.placeName});
+		var day = Day.findOne({number: req.params.dayNumber});
+		Promise.all([activity, day])
+		.then(function(info){
+			var activity = info[0];
+			var day = info[1];
+
+			var deleteThis = day.activities.indexOf(activity._id);
+			// console.log("we want to delete this", deleteThis);
+			day.activities.splice(deleteThis, 1);
+			day.save().then(null, next);
+		})
+	}
+
+	if(req.body.type === "restaurants") {
+		var restaurant = Restaurant.findOne({name: req.body.placeName});
+		var day = Day.findOne({number: req.params.dayNumber});
+		Promise.all([restaurant, day])
+		.then(function(info){
+			var day = info[1];
+			var restaurant = info[0];
+			var deleteThis = day.restaurants.indexOf(restaurant._id);
+			day.restaurants.splice(deleteThis, 1);
+			day.save().then(null, next);
+		})
+	}
+
+	if(req.body.type === "hotels") {
+		var hotel = Hotel.findOne({name: req.body.placeName});
+		var day = Day.findOne({number: req.params.dayNumber});
+		Promise.all([hotel, day])
+		.then(function(info){
+			var day = info[1];
+			var hotel = info[0];
+			// console.log(typeof day.hotel, typeof hotel._id);
+			// console.log(day.hotel == hotel._id.toString());
+			if (day.hotel == hotel._id.toString()) {
+				day.hotel = null;
+			}
+			day.save().then(null, next);
+		})
+	}
+});
+
 router.post('/:dayNumber/addActivity', function (req, res, next){
 	//find day by number
 	// console.log("HELLO" + JSON.stringify(req.body));
-
 	if(req.body.type === "activities") {
 		var activity = Activity.findOne({name: req.body.placeName});
 		var day = Day.findOne({number: req.params.dayNumber});
